@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Do Aviator signals work? A test</title>
+<style>
+:root{--bg:#eef2f5;--ink:#14202b;--mut:#5b6b7a;--line:#cfd8e0;--card:#fff;--a:#0b6e8a;--b:#c2410c;--ok:#1d7a46}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+h1{font:700 2rem/1.15 Georgia,'Times New Roman',serif;margin:0 0 10px}
+h2{font:700 1.25rem/1.2 Georgia,serif;margin:36px 0 10px}
+p{max-width:68ch}
+.mut{color:var(--mut)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
+textarea{width:100%;min-height:90px;font:14px/1.4 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:4px;padding:8px}
+button{background:var(--a);color:#fff;border:0;border-radius:4px;padding:10px 18px;font:600 15px system-ui;cursor:pointer;margin-top:8px}
+button:focus-visible,textarea:focus-visible{outline:3px solid var(--b);outline-offset:2px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700}
+.no{color:var(--b);font-weight:600}.yes{color:var(--ok);font-weight:600}
+canvas{width:100%;height:280px;display:block;background:#fff;border:1px solid var(--line);border-radius:6px}
+.key span{display:inline-block;margin-right:16px;font-size:14px}
+.key i{display:inline-block;width:18px;height:4px;margin-right:6px;vertical-align:middle}
+.warn{border-left:4px solid var(--b)}
+</style>
+</head>
+<body>
+<main>
+<h1>Do Aviator signals work?</h1>
+<p>School project. We took the strategy from our lecture, turned each claim into a rule, and tested it on rounds the rules had to predict. This site does not predict real rounds and should not be used to bet.</p>
+
+<div class="box">
+<label for="rounds"><b>Your rounds</b> <span class="mut">(optional: paste multipliers, one per line or comma-separated. Leave empty to use 20,000 simulated rounds.)</span></label>
+<textarea id="rounds" placeholder="1.23&#10;4.56&#10;1.01"></textarea>
+<button id="run">Run the test</button>
+<p id="src" class="mut"></p>
+</div>
+
+<h2>Next round, by the lecture's rules</h2>
+<div class="box" id="next"></div>
+
+<h2>The lecture, in full</h2>
+<p class="mut">Everything below is what the lecture says. Each part has a "Check" line saying whether the data or the maths supports it.</p>
+
+<div class="box">
+<p><b>Definitions</b></p>
+<ul>
+<li><b>Instaloss:</b> any number from 1.00 to 1.04, when the plane flies away early.</li>
+<li><b>Cooldown:</b> waiting for an instaloss to occur.</li>
+<li><b>Bait:</b> numbers that tempt you to bet higher.</li>
+<li><b>Anomaly:</b> a hugely disproportionate number.</li>
+</ul>
+<p><b>The main idea.</b> The lecture says the game is "rigged" in the sense that the computer decides when to stop the plane based on how much money it has paid out and taken in. If almost all players have been winning, it says an instaloss is coming soon because the computer must take money back. It also says the data is still useful because rooms behave alike, so the statistics show how to play the safest long-term game.</p>
+<p class="no">Check: the sections below test this on the rounds. A crash game's results come from a random draw, so past payouts should not change the next round.</p>
+
+<p><b>The 3 situations to watch for</b></p>
+<ol>
+<li>Consistent wins in a row for almost all players means an instaloss is coming. <i>Avoid it by not betting and waiting for an instaloss. Two can happen in a row, so wait out one more round after it.</i></li>
+<li>If everyone cashed out and the number keeps rising to an anomaly, ignore it. It is bait for the next round. <i>Avoid it by not letting a number like 600x excite you.</i></li>
+<li>If everyone cashed out and one or two players with R1 bets watch it pass 50x, 100x or 1000x, that is bait too, because their reward is smaller than what the game took from everyone else. <i>Avoid it by being observant and accepting the next bet at a lower multiplier than the average you've seen.</i></li>
+</ol>
+<p class="no">Check: bait implies the number is chosen after looking at who bet. If that were true, rounds after an anomaly would differ from normal ones. Table 2 tests this.</p>
+
+<p><b>The lecture's findings (over 1,000 results)</b></p>
+<div class="tw"><table id="bk"></table></div>
+<p>Also from the lecture: 1.01 and over is 95.4%. 1.05 and over is 91.7%. Anything over 2.75 is left out because it is "too risky" for a slow and steady strategy. Two instalosses in a row should happen under 0.02% of the time statistically, but the lecture says they seem to happen much more, and takes that as proof of rigging.</p>
+<p class="no">Check: the "Simulated" column is what a fair game with a 3% house edge gives. If the lecture's numbers match it in most rows, they are a normal result and not a special find. Two instalosses in a row happen about as often as the instaloss rate squared (for example 3.7% x 3.7% is about 0.14%), which is already above 0.02%, so seeing them "a lot" is not proof of rigging.</p>
+
+<p><b>The strategy</b></p>
+<ul>
+<li>With a R100 balance, bet R1 or R2. Bet R1 at 1.05x with a 92% win rate. The 92% ignores the 3 situations, so respecting them is meant to bring you closer to it.</li>
+<li>After a loss, choose: win the next 20 bets at 1.05x (18% chance), or make your next bet 20 times the last one and win once. The second is better at 1.05x. At 1.50x you would need 2 wins, or to double your stake.</li>
+<li>Bet only what lets you afford the multiplier. With R15 at R1 bets you can't afford a 20x bet. R150 with R2.50 bets is a good choice. At R150 with R1 bets you'd need R200 after a loss, which you don't have.</li>
+<li>For growth, raise your bet by 1 to 5% per win (the lecturer uses 1 or 2 cents). Small increases keep the 20x step affordable. Doubling fast gets you cleared out in 2 or 3 instalosses.</li>
+<li>Instalosses are the most costly thing. If none has happened in a while, skip the next few rounds. Wait for one, plus one more round, before betting again.</li>
+<li>At 1.05x, winning 20 bets in a row is an 18% chance, 10 in a row is 39%, 5 in a row is 62%. So win 3 or 4 bets, stop, and reassess.</li>
+</ul>
+<p class="no">Check: the streak chances are correct maths (about 0.92 to the power of the streak length), but they don't make the next bet likelier to lose after a streak. Section 1 tests the whole strategy, and the 20x step does not change the average loss per rand wagered.</p>
+
+<p><b>Strategy summary</b></p>
+<ul>
+<li>Pay attention to other players' wins and losses.</li>
+<li>Ignore big numbers when everyone cashed out.</li>
+<li>Note when the last instaloss happened.</li>
+<li>Don't get baited by small-bet players hitting x300.</li>
+<li>No one-off risky bets, which ruin the exponential curve.</li>
+<li>Patience, patience, patience.</li>
+<li>Bigger balance means bigger bets and bigger earnings at a given multiplier.</li>
+</ul>
+<p class="no">Check: the last rule is true, but only for losses too. A bigger bet makes the 3% loss bigger in rand terms.</p>
+</div>
+
+<h2>1. The strategy as a bot</h2>
+<p>The lecture's rules: bet R1 at 1.05x. Wait out an instaloss (under 1.05x) plus one more round before betting. Stop after 3 wins in a row and wait again. After a loss, bet 20 times the stake. After each win, raise the stake by 2%. Each simulated session starts with R100 and lasts up to 300 rounds.</p>
+<div class="key"><span><i style="background:#0b6e8a"></i>Lecture strategy (average)</span><span><i style="background:#c2410c"></i>Flat R1 every round (average)</span></div>
+<canvas id="chart" width="860" height="280" role="img" aria-label="Balance over rounds for both strategies"></canvas>
+<div class="tw box" style="margin-top:12px"><table id="res"></table></div>
+
+<h2>2. Testing each claim</h2>
+<p>Each claim says something is more likely after a certain event. We measure how often it actually happened, compared with how often it happens in general. A difference only counts if it is too big to be chance.</p>
+<div class="tw box"><table id="sig"></table></div>
+
+<h2>3. What the results mean</h2>
+<div class="box warn">
+<p><b>Waiting does not help.</b> If rounds are independent, a round right after an instaloss has the same odds as any other round. Skipping rounds only means betting less often.</p>
+<p><b>Multiplying the stake by 20 does not fix a loss.</b> It makes the loss bigger when the one round in about 13 that goes wrong comes twice in a row, and the balance can't cover it. The money returned per R1 bet stays below R1 whatever the stake pattern is.</p>
+<p><b>The "rigged to balance the books" idea cannot be seen in the data.</b> If a game really reacted to what other players won, the rounds after big wins would look different. The test above checks that and finds nothing beyond chance on simulated rounds. If your own data shows a difference, check the sample size (n) before trusting it.</p>
+<p><b>Conclusion:</b> the signals in the lecture are not predictors. The slow loss of about 3% of everything wagered is built into the game.</p>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const pct=x=>(100*x).toFixed(1)+"%";
+const R=x=>"R"+x.toFixed(2);
+
+function simulate(n){const r=[];for(let i=0;i<n;i++){const m=Math.floor(97/(1-Math.random()))/100;r.push(m<1?1:m)}return r}
+
+function play(r,start,len,lec){
+  let bal=100,base=1,stake=1,wins=0,waiting=true,skip=0,wag=0;const curve=[bal];
+  for(let i=start;i<start+len;i++){
+    const x=r[i],il=x<1.05;let bet=true;
+    if(lec){
+      if(waiting){bet=false;if(il){waiting=false;skip=1}}
+      else if(skip>0){bet=false;skip--}
+    }
+    if(bet&&bal>=0.01){
+      const a=Math.min(stake,bal);wag+=a;
+      if(x>=1.05){bal+=a*0.05;wins++;base*=1.02;stake=base;
+        if(lec&&wins>=3){waiting=true;wins=0}}
+      else{bal-=a;wins=0;stake=lec?base*20:base}
+    }
+    curve.push(bal);
+  }
+  return {bal,wag,curve};
+}
+
+function sessions(r,lec){
+  const L=Math.min(300,Math.floor(r.length/2)),N=200,out=[];
+  for(let s=0;s<N;s++){out.push(play(r,Math.floor(Math.random()*(r.length-L)),L,lec))}
+  return {out,L};
+}
+function summary(o){
+  const n=o.out.length,fin=o.out.map(x=>x.bal);
+  const wag=o.out.reduce((s,x)=>s+x.wag,0),prof=fin.reduce((s,b)=>s+b-100,0);
+  return {win:fin.filter(b=>b>100).length/n,bust:fin.filter(b=>b<1).length/n,avg:fin.reduce((a,b)=>a+b,0)/n,ret:wag?prof/wag:0};
+}
+
+function draw(a,b,L){
+  const c=$("chart"),g=c.getContext("2d"),W=c.width,H=c.height,p=34;
+  g.clearRect(0,0,W,H);
+  const mean=o=>Array.from({length:L+1},(_,i)=>o.out.reduce((s,x)=>s+x.curve[i],0)/o.out.length);
+  const ma=mean(a),mb=mean(b);
+  const all=[...ma,...mb,...a.out.slice(0,25).flatMap(x=>x.curve)];
+  const lo=Math.min(0,...all),hi=Math.max(...all)*1.05;
+  const X=i=>p+(W-p-10)*i/L,Y=v=>H-p-(H-p-12)*(v-lo)/(hi-lo);
+  g.strokeStyle="#cfd8e0";g.fillStyle="#5b6b7a";g.font="12px system-ui";
+  for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;g.beginPath();g.moveTo(p,Y(v));g.lineTo(W-10,Y(v));g.stroke();g.fillText("R"+v.toFixed(0),2,Y(v)+4)}
+  g.fillText("round 0",p,H-10);g.fillText("round "+L,W-70,H-10);
+  g.strokeStyle="rgba(11,110,138,.13)";g.lineWidth=1;
+  a.out.slice(0,25).forEach(x=>{g.beginPath();x.curve.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.stroke()});
+  [[ma,"#0b6e8a"],[mb,"#c2410c"]].forEach(([m,col])=>{g.strokeStyle=col;g.lineWidth=3;g.beginPath();m.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.stroke()});
+  g.strokeStyle="#14202b";g.setLineDash([4,4]);g.lineWidth=1;g.beginPath();g.moveTo(p,Y(100));g.lineTo(W-10,Y(100));g.stroke();g.setLineDash([]);
+}
+
+function test(r,cond,hit){
+  let n=0,h=0;
+  for(let i=10;i<r.length;i++){if(cond(i)){n++;if(hit(r[i]))h++}}
+  return {n,p:n?h/n:0};
+}
+function signals(r){
+  const il=x=>x<1.05;
+  const base=r.filter(il).length/r.length;
+  const defs=[
+    ["An instaloss is due after 10 rounds without one",i=>r.slice(i-10,i).every(x=>!il(x))],
+    ["Two instalosses in a row are very rare (under 0.02%)",i=>il(r[i-1])],
+    ["After a huge number (20x or more), an instaloss follows",i=>r[i-1]>=20],
+    ["After 3 wins in a row at 1.05x, a loss is coming",i=>r.slice(i-3,i).every(x=>!il(x))]
+  ];
+  return defs.map(([claim,cond])=>{
+    const t=test(r,cond,il),sd=Math.sqrt(base*(1-base)/Math.max(t.n,1)),z=(t.p-base)/sd;
+    const sig=t.n>=30&&Math.abs(z)>2;
+    return `<tr><td>${claim}</td><td>${pct(t.p)}</td><td>${pct(base)}</td><td>${t.n}</td><td class="${sig?"yes":"no"}">${t.n<30?"too few cases":sig?"differs":"same as chance"}</td></tr>`;
+  }).join("");
+}
+
+function advise(r){
+  let waiting=true,skip=0,wins=0;const st={Bet:[0,0],Wait:[0,0]};
+  const dec=i=>{
+    if(waiting)return["Wait","Cooldown: waiting for an instaloss (under 1.05x)."];
+    if(skip>0)return["Wait","An instaloss just happened. Skip one more round in case two come in a row."];
+    if(i>=10&&r.slice(i-10,i).every(x=>x>=1.05))return["Wait","No instaloss in the last 10 rounds, so the lecture says to wait."];
+    return["Bet","Conditions are clear. Bet at 1.05x."];
+  };
+  for(let i=0;i<r.length;i++){
+    const [a]=dec(i),il=r[i]<1.05,gap=!waiting&&skip===0&&a==="Wait";
+    st[a][0]++;if(!il)st[a][1]++;
+    if(waiting){if(il){waiting=false;skip=1}}
+    else if(skip>0)skip--;
+    else if(gap){if(il)skip=1}
+    else if(!il){wins++;if(wins>=3){waiting=true;wins=0}}
+    else wins=0;
+  }
+  return {now:dec(r.length),st};
+}
+function nextHtml(u,r){
+  if(u.length<12)return `<p>Enter at least 12 past rounds above and press <b>Run the test</b> to see what the lecture's rules say for the next round.</p>`;
+  const last=u.slice(-8).map(x=>x.toFixed(2)+"x").join(", ");
+  const [act,why]=advise(u).now,h=advise(r).st;
+  const rate=s=>s[0]?s[1]/s[0]:0,all=(h.Bet[1]+h.Wait[1])/(h.Bet[0]+h.Wait[0]);
+  const se=Math.sqrt(all*(1-all)/Math.max(h.Bet[0],1)),diff=rate(h.Bet)-all;
+  const real=h.Bet[0]>=30&&Math.abs(diff/se)>2;
+  const big=u[u.length-1]>=50?`<p class="no">The last round was ${u[u.length-1].toFixed(2)}x. By the lecture this is bait, so ignore it.</p>`:"";
+  return `<p class="mut">Last rounds you entered: ${last}</p>
+  <p style="font-size:1.4rem;margin:6px 0"><b>${act==="Bet"?"Lecture rules say: bet 1.05x":"Lecture rules say: wait"}</b></p>
+  <p>${why}</p>${big}
+  <p><b>How reliable is this?</b> On the ${r.length} rounds tested, the next round reached 1.05x or more ${pct(rate(h.Bet))} of the time when the rules said Bet (${h.Bet[0]} cases), ${pct(rate(h.Wait))} when they said Wait (${h.Wait[0]} cases), and ${pct(all)} overall. <span class="${real?"yes":"no"}">${real?"The Bet signal differs from chance on this data.":"That is the same as chance, so the rules add no real prediction."}</span></p>`;
+}
+function run(){
+  let r=$("rounds").value.split(/[\s,;]+/).map(s=>parseFloat(s.replace(/x$/i,""))).filter(x=>x>=1);
+  const u=r.slice();let src;
+  if(r.length>=200)src=`Using your ${r.length} rounds.`;
+  else{src=r.length?`You entered ${r.length} rounds, which is too few (need 200). Using 20,000 simulated rounds instead.`:"Using 20,000 simulated rounds (3% house edge).";r=simulate(20000)}
+  $("src").textContent=src;
+  $("next").innerHTML=nextHtml(u,r);
+  const a=sessions(r,true),b=sessions(r,false),sa=summary(a),sb=summary(b);
+  draw(a,b,a.L);
+  const row=(n,s)=>`<tr><td>${n}</td><td>${pct(s.win)}</td><td>${pct(s.bust)}</td><td>${R(s.avg)}</td><td>${pct(s.ret)}</td></tr>`;
+  $("res").innerHTML=`<tr><th>Strategy</th><th>Sessions ending in profit</th><th>Sessions that went broke</th><th>Average final balance (start R100)</th><th>Return on every R1 bet</th></tr>`+row("Lecture strategy",sa)+row("Flat R1 every round",sb);
+  const B=[[1,1.04,3.7],[1.05,1.15,7.9],[1.16,1.25,5.6],[1.26,1.35,6.6],[1.36,1.45,3.5],[1.46,1.55,3.4],[1.56,1.65,4],[1.66,1.75,3.2],[1.76,1.85,3.6],[1.86,1.95,2.1],[1.96,2.05,1.6],[2.06,2.15,2.1],[2.16,2.25,1.7],[2.26,2.35,1.7],[2.36,2.45,1.2],[2.46,2.55,1.5],[2.56,2.65,1.7],[2.66,2.75,1.1]];
+  const F=m=>m>=1.0?0.97/m:1,ex=(lo,hi)=>(lo<=1?1:F(lo))-F(hi+0.01);
+  $("bk").innerHTML=`<tr><th>Range</th><th>Lecture</th><th>Simulated (fair game)</th><th>In your rounds</th></tr>`+B.map(([lo,hi,l])=>{
+    const o=r.filter(x=>x>=lo&&x<hi+0.01).length/r.length;
+    return `<tr><td>${lo.toFixed(2)} to ${hi.toFixed(2)}</td><td>${l}%</td><td>${pct(ex(lo,hi))}</td><td>${pct(o)}</td></tr>`}).join("");
+  $("sig").innerHTML=`<tr><th>Claim</th><th>How often an instaloss followed</th><th>How often in general</th><th>Cases (n)</th><th>Result</th></tr>`+signals(r);
+}
+$("run").onclick=run;run();
+</script>
+</main>
+</body>
+</html>
