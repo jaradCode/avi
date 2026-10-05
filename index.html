@@ -207,7 +207,7 @@ function advise(r){
   return {now:dec(r.length),st};
 }
 function nextHtml(u,r){
-  if(u.length<12)return `<p>Enter at least 12 past rounds above and press <b>Run the test</b> to see what the lecture's rules say for the next round.</p>`;
+  if(u.length<10)return `<p>Enter at least 10 past rounds above and press <b>Run the test</b> to see what the lecture's rules say for the next round.</p>`;
   const last=u.slice(-8).map(x=>x.toFixed(2)+"x").join(", ");
   const [act,why]=advise(u).now,h=advise(r).st;
   const rate=s=>s[0]?s[1]/s[0]:0,all=(h.Bet[1]+h.Wait[1])/(h.Bet[0]+h.Wait[0]);
@@ -217,6 +217,7 @@ function nextHtml(u,r){
   return `<p class="mut">Last rounds you entered: ${last}</p>
   <p style="font-size:1.4rem;margin:6px 0"><b>${act==="Bet"?"Lecture rules say: bet 1.05x":"Lecture rules say: wait"}</b></p>
   <p>${why}</p>${big}
+  <p><b>Estimate for the next round:</b> ${[1.05,1.5,2,5,10].map(m=>`${m}x or more: ${pct(0.97/m)}`).join(" | ")}. These chances are the same for every round, whatever the previous ${u.length} rounds were.</p>
   <p><b>How reliable is this?</b> On the ${r.length} rounds tested, the next round reached 1.05x or more ${pct(rate(h.Bet))} of the time when the rules said Bet (${h.Bet[0]} cases), ${pct(rate(h.Wait))} when they said Wait (${h.Wait[0]} cases), and ${pct(all)} overall. <span class="${real?"yes":"no"}">${real?"The Bet signal differs from chance on this data.":"That is the same as chance, so the rules add no real prediction."}</span></p>`;
 }
 function run(){
