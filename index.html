@@ -1,85 +1,395 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aviator Predictor</title>
-<style>
-:root{--bg:#eef2f5;--ink:#14202b;--mut:#5b6b7a;--line:#cfd8e0;--a:#0b6e8a;--bet:#1d7a46;--wait:#c2410c}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{max-width:560px;margin:0 auto;padding:28px 16px 48px}
-h1{font:700 1.8rem/1.2 Georgia,'Times New Roman',serif;margin:0 0 18px}
-label{display:block;font-weight:600;margin:12px 0 4px}
-textarea,input{width:100%;border:1px solid var(--line);border-radius:4px;padding:10px;font:15px ui-monospace,Menlo,monospace;background:#fff;color:var(--ink)}
-textarea{min-height:110px}
-.row{display:flex;gap:12px}.row>div{flex:1}
-button{width:100%;margin-top:14px;background:var(--a);color:#fff;border:0;border-radius:4px;padding:13px;font:700 16px system-ui;cursor:pointer}
-button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--wait);outline-offset:2px}
-#out{margin-top:22px}
-.card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px}
-.v{font:700 2.6rem/1 Georgia,serif;margin:0 0 6px}
-.bet{color:var(--bet)}.wait{color:var(--wait)}
-.row2{margin:8px 0 0}
-.mut{color:var(--mut);font-size:14px}
-table{border-collapse:collapse;width:100%;margin-top:12px}
-td{padding:6px 0;border-top:1px solid var(--line)}
-td:last-child{text-align:right;font-weight:700}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f0e8">
+  <meta name="description" content="A calm, descriptive Aviator history checker. Recent multipliers do not predict the next round.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2328695e'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='30' fill='%23f3f0e8'%3E2%3C/text%3E%3C/svg%3E">
+  <title>Aviator History Checker — look back, not ahead</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3f0e8;
+      --panel: #fbfaf6;
+      --ink: #193936;
+      --muted: #687b73;
+      --line: #d6ddd3;
+      --teal: #28695e;
+      --teal-deep: #1b5149;
+      --mint: #e2eee6;
+      --orange: #c66a45;
+      --orange-pale: #f6e9df;
+      --red: #9d443c;
+      --shadow: 0 18px 55px rgba(40, 69, 59, .08);
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .16;
+      z-index: -1;
+      background-image: radial-gradient(#667d6d 0.55px, transparent .55px);
+      background-size: 8px 8px;
+      mask-image: linear-gradient(to bottom, black, transparent 72%);
+    }
+    a { color: var(--teal-deep); text-underline-offset: 3px; }
+    a:hover { color: var(--orange); }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, a:focus-visible {
+      outline: 3px solid var(--orange);
+      outline-offset: 3px;
+    }
+    .page { max-width: 1120px; margin: auto; padding: 0 36px; }
+    .topbar {
+      height: 72px; border-bottom: 1px solid rgba(25,57,54,.14);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 13px; font-weight: 700; letter-spacing: .035em; }
+    .brand-mark {
+      width: 29px; height: 29px; border: 1px solid var(--teal);
+      border-radius: 50%; display: grid; place-items: center; color: var(--teal);
+      font: 700 12px var(--mono); position: relative;
+    }
+    .brand-mark::after { content: ""; position: absolute; width: 5px; height: 5px; background: var(--orange); border-radius: 50%; right: -2px; top: 2px; }
+    .top-note { color: var(--muted); font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    main { padding-bottom: 80px; }
+    .hero { display: grid; grid-template-columns: 1fr 280px; gap: 40px; align-items: end; padding: 76px 0 49px; }
+    .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--teal); font: 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; height: 1px; width: 27px; background: var(--orange); }
+    h1 { max-width: 700px; margin: 18px 0 15px; font: 400 clamp(43px, 6.6vw, 76px)/.99 var(--serif); letter-spacing: -.055em; }
+    h1 em { color: var(--teal); font-weight: 400; }
+    .hero-copy { max-width: 610px; margin: 0; color: #526861; font-size: 16px; }
+    .hero-note {
+      border-left: 1px solid var(--orange); padding: 6px 0 6px 18px;
+      color: var(--muted); font-size: 13px; line-height: 1.6;
+    }
+    .hero-note strong { display: block; color: var(--ink); font: 17px var(--serif); margin-bottom: 4px; }
+    .rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); gap: 21px; align-items: start; padding-top: 32px; }
+    .panel { border: 1px solid var(--line); border-radius: 4px; background: var(--panel); box-shadow: var(--shadow); }
+    .entry-panel { padding: 29px 30px 27px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; }
+    .step { color: var(--orange); font: 11px var(--mono); letter-spacing: .1em; }
+    h2 { margin: 5px 0 4px; font: 400 27px/1.15 var(--serif); letter-spacing: -.025em; }
+    .subcopy { margin: 0; color: var(--muted); font-size: 13px; }
+    .threshold {
+      flex-shrink: 0; border: 1px solid #c8d8cc; color: var(--teal-deep);
+      border-radius: 99px; background: #edf4ed; padding: 7px 10px;
+      font: 10px var(--mono); letter-spacing: .02em; white-space: nowrap;
+    }
+    .input-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 9px; margin-top: 28px; }
+    .field { min-width: 0; }
+    .field label { display: flex; flex-direction: column; gap: 5px; color: var(--muted); font: 10px var(--mono); letter-spacing: .035em; }
+    .field input {
+      width: 100%; height: 48px; padding: 0 9px; border: 1px solid #cbd5cc;
+      border-radius: 3px; color: var(--ink); background: #fffefa; font: 16px var(--mono);
+      transition: border-color .18s, background-color .18s;
+    }
+    .field input::placeholder { color: #aab6ad; }
+    .field input[aria-invalid="true"] { border-color: var(--red); background: #fff8f5; }
+    .field-error { display: block; min-height: 18px; padding-top: 4px; color: var(--red); font: 10px/1.25 var(--sans); }
+    .field-error:empty { visibility: hidden; }
+    .entry-hint { display: flex; align-items: center; gap: 8px; margin: 3px 0 22px; color: var(--muted); font-size: 12px; }
+    .entry-hint span { color: var(--orange); font: 12px var(--mono); }
+    .form-actions { display: flex; align-items: center; gap: 16px; }
+    .button {
+      min-height: 45px; padding: 0 18px; border: 1px solid var(--teal);
+      border-radius: 3px; background: var(--teal); color: #fffdf7;
+      cursor: pointer; font-size: 13px; font-weight: 650; letter-spacing: .01em;
+      transition: background-color .18s, transform .18s;
+    }
+    .button:hover { background: var(--teal-deep); }
+    .button:active { transform: translateY(1px); }
+    .button.secondary { background: transparent; color: var(--teal-deep); border-color: #b9c9bf; }
+    .button.secondary:hover { background: var(--mint); }
+    .form-note { margin: 13px 0 0; color: #78877e; font-size: 11px; }
+    .results-panel { padding: 27px 25px 24px; min-height: 100%; }
+    .results-panel[data-ready="false"] { background: #f6f5ef; box-shadow: none; }
+    .results-panel[data-ready="false"] .results-content { opacity: .68; }
+    .results-panel[data-ready="true"] .results-content { animation: arrive .32s ease-out both; }
+    @keyframes arrive { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .result-status { display: flex; justify-content: space-between; align-items: center; }
+    .status-label { color: var(--muted); font: 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #b8c3ba; }
+    [data-ready="true"] .status-dot { background: var(--teal); }
+    .result-heading { margin: 17px 0 17px; font: 400 24px/1.12 var(--serif); letter-spacing: -.025em; }
+    .result-heading span { color: var(--orange); }
+    .numbers { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat { padding: 13px 8px 13px 0; }
+    .stat + .stat { border-left: 1px solid var(--line); padding-left: 17px; }
+    .stat-value { display: block; color: var(--ink); font: 25px var(--serif); }
+    .stat-label { color: var(--muted); font-size: 11px; }
+    .history-readout { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 13px 0 18px; color: var(--muted); font-size: 11px; }
+    .history-readout strong { color: var(--ink); font: 12px var(--mono); }
+    .forecast-title { display: flex; justify-content: space-between; align-items: center; margin: 0 0 8px; }
+    .forecast-title h3 { margin: 0; font: 16px var(--serif); }
+    .not-forecast { color: var(--orange); font: 9px var(--mono); letter-spacing: .055em; }
+    .round-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e8e0; min-height: 36px; }
+    .round-row span:first-child { color: var(--muted); font-size: 11px; }
+    .round-row strong { color: var(--teal-deep); font: 10px var(--mono); letter-spacing: .025em; }
+    .result-disclaimer { margin: 13px 0 0; padding: 10px 11px; background: var(--mint); color: #46655b; font-size: 11px; line-height: 1.45; }
+    .how-section { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; padding: 62px 8px 56px; }
+    .section-kicker { margin-bottom: 11px; color: var(--orange); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .how-section h2 { font-size: 31px; max-width: 370px; }
+    .how-section p { max-width: 490px; color: #5d7067; font-size: 13px; }
+    .how-section p strong { color: var(--ink); font-weight: 650; }
+    .caution-box { align-self: center; padding: 22px 23px; border: 1px solid #e4c9b7; background: #f8eee5; }
+    .caution-box h3 { margin: 0 0 9px; color: #814a32; font: 18px var(--serif); }
+    .caution-box p { margin: 0; color: #795d4d; font-size: 12px; }
+    .reading { display: grid; grid-template-columns: 160px 1fr; gap: 35px; padding: 25px 0 31px; border-top: 1px solid var(--line); }
+    .reading h2 { font-size: 21px; }
+    .reading-list { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .reading-list p { margin: 0; color: var(--muted); font-size: 12px; }
+    .reading-list a { font-weight: 650; }
+    .reading-list span { display: block; margin-top: 5px; }
+    footer { border-top: 1px solid var(--line); padding: 17px 0 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; color: #77847c; font-size: 11px; }
+    footer strong { color: var(--ink); }
+    .footer-mark { color: var(--teal); font: 10px var(--mono); letter-spacing: .08em; white-space: nowrap; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 760px) {
+      .page { padding: 0 20px; }
+      .hero { grid-template-columns: 1fr; gap: 22px; padding: 55px 0 34px; }
+      .hero-note { max-width: 420px; }
+      .workspace { grid-template-columns: 1fr; gap: 15px; }
+      .results-panel { min-height: unset; }
+      .how-section { padding: 48px 0; gap: 25px; }
+      .reading { grid-template-columns: 1fr; gap: 15px; }
+    }
+    @media (max-width: 480px) {
+      .page { padding: 0 16px; }
+      .topbar { height: 62px; }
+      .top-note { font-size: 9px; }
+      .hero { padding-top: 44px; }
+      h1 { font-size: clamp(42px, 13vw, 60px); }
+      .entry-panel { padding: 22px 17px; }
+      .threshold { white-space: normal; max-width: 104px; line-height: 1.35; text-align: center; }
+      .input-grid { gap: 6px; margin-top: 23px; }
+      .field label { font-size: 9px; }
+      .field input { height: 45px; font-size: 14px; padding: 0 5px; }
+      .form-actions { gap: 10px; }
+      .button { padding: 0 12px; }
+      .form-note { line-height: 1.45; }
+      .results-panel { padding: 23px 18px; }
+      .how-section { grid-template-columns: 1fr; gap: 20px; }
+      .reading-list { grid-template-columns: 1fr; gap: 16px; }
+      footer { flex-direction: column; gap: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 <body>
-<main>
-<h1>Aviator Predictor</h1>
-<label for="rounds">Previous rounds (at least 10, oldest first)</label>
-<textarea id="rounds" placeholder="1.23, 4.56, 1.01, 2.10, ..."></textarea>
-<div class="row">
-<div><label for="bal">Balance (R)</label><input id="bal" type="number" min="1" value="100"></div>
-<div><label for="base">Bet size (R)</label><input id="base" type="number" min="0.5" step="0.5" value="1"></div>
-</div>
-<button id="go">Predict next round</button>
-<div id="out"></div>
-<p class="mut">Estimates only. Crash rounds are random.</p>
-</main>
-<script>
-const $=id=>document.getElementById(id);
-const pct=x=>(100*x).toFixed(1)+"%";
-function analyse(r,base){
-  let waiting=true,skip=0,wins=0,b=base,stake=base;
-  const dec=i=>{
-    if(waiting)return["WAIT","Cooldown: waiting for an instaloss."];
-    if(skip>0)return["WAIT","Instaloss just happened. Skip one more round."];
-    if(i>=10&&r.slice(i-10,i).every(x=>x>=1.05))return["WAIT","No instaloss in the last 10 rounds."];
-    return["BET","Conditions are clear."];
-  };
-  for(let i=0;i<r.length;i++){
-    const a=dec(i)[0],il=r[i]<1.05,gap=!waiting&&skip===0&&a==="WAIT";
-    if(waiting){if(il){waiting=false;skip=1}}
-    else if(skip>0)skip--;
-    else if(gap){if(il)skip=1}
-    else if(!il){wins++;b*=1.02;stake=b;if(wins>=3){waiting=true;wins=0}}
-    else{wins=0;stake=b*20}
-  }
-  let since=0;for(let i=r.length-1;i>=0&&r[i]>=1.05;i--)since++;
-  return {d:dec(r.length),stake,b,since};
-}
-function go(){
-  const r=$("rounds").value.split(/[\s,;]+/).map(s=>parseFloat(s.replace(/x$/i,""))).filter(x=>x>=1);
-  const bal=+$("bal").value||0,base=+$("base").value||1,o=$("out");
-  if(r.length<10){o.innerHTML=`<div class="card">Enter at least 10 previous rounds. You have ${r.length}.</div>`;return}
-  const {d,stake,b,since}=analyse(r,base),bet=d[0]==="BET";
-  let extra="";
-  if(bet){
-    const s=Math.min(stake,bal);
-    extra=`<p class="row2"><b>Stake: R${s.toFixed(2)} at 1.05x</b></p>`;
-    if(20*b>bal)extra+=`<p class="row2 wait">Bet too big for your balance. Lower it to about R${(bal/20).toFixed(2)}.</p>`;
-  }
-  const last=r[r.length-1];
-  if(last>=50)extra+=`<p class="row2 wait">Last round was ${last.toFixed(2)}x. Ignore it.</p>`;
-  o.innerHTML=`<div class="card"><p class="v ${bet?"bet":"wait"}">${d[0]}</p><p>${d[1]}</p>${extra}
-  <p class="mut">Rounds since last instaloss: ${since}</p>
-  <table>${[1.05,1.5,2,5,10].map(m=>`<tr><td>Next round reaches ${m}x</td><td>${pct(0.97/m)}</td></tr>`).join("")}</table></div>`;
-}
-$("go").onclick=go;
-</script>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">AH</span><span>AVIATOR HISTORY CHECKER</span></div>
+      <div class="top-note">A record, not a forecast</div>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <div class="eyebrow">A small tool for a clear view</div>
+          <h1 id="page-title">Look back.<br><em>Don’t look ahead.</em></h1>
+          <p class="hero-copy">Enter five completed round multipliers to describe what happened. Recent results cannot tell you what the next round will do.</p>
+        </div>
+        <aside class="hero-note">
+          <strong>One fixed review line: 2.00×</strong>
+          We use this only to group the history you enter. It is not an edge, signal, or recommendation.
+        </aside>
+      </section>
+      <hr class="rule">
+
+      <section class="workspace" aria-label="History checker">
+        <form class="panel entry-panel" id="history-form" novalidate>
+          <div class="panel-head">
+            <div>
+              <div class="step">01 / ENTER HISTORY</div>
+              <h2>Five completed rounds</h2>
+              <p class="subcopy">Oldest first. Most recent last.</p>
+            </div>
+            <span class="threshold">2× REVIEW LINE<br>not an edge</span>
+          </div>
+          <div class="input-grid">
+            <div class="field">
+              <label for="round-1">01 · OLDEST
+                <input id="round-1" name="round1" inputmode="decimal" autocomplete="off" placeholder="1.42" aria-describedby="error-1" required>
+              </label><span class="field-error" id="error-1"></span>
+            </div>
+            <div class="field">
+              <label for="round-2">02
+                <input id="round-2" name="round2" inputmode="decimal" autocomplete="off" placeholder="2.10" aria-describedby="error-2" required>
+              </label><span class="field-error" id="error-2"></span>
+            </div>
+            <div class="field">
+              <label for="round-3">03
+                <input id="round-3" name="round3" inputmode="decimal" autocomplete="off" placeholder="1.08" aria-describedby="error-3" required>
+              </label><span class="field-error" id="error-3"></span>
+            </div>
+            <div class="field">
+              <label for="round-4">04
+                <input id="round-4" name="round4" inputmode="decimal" autocomplete="off" placeholder="3.20" aria-describedby="error-4" required>
+              </label><span class="field-error" id="error-4"></span>
+            </div>
+            <div class="field">
+              <label for="round-5">05 · NEWEST
+                <input id="round-5" name="round5" inputmode="decimal" autocomplete="off" placeholder="1.66" aria-describedby="error-5" required>
+              </label><span class="field-error" id="error-5"></span>
+            </div>
+          </div>
+          <p class="entry-hint"><span aria-hidden="true">↳</span> Enter a positive number, with or without “x”.</p>
+          <div class="form-actions">
+            <button class="button" type="submit">Review these five</button>
+            <button class="button secondary" type="reset">Clear</button>
+          </div>
+          <p class="form-note">Your entries stay in this page and are not sent anywhere.</p>
+          <p class="sr-only" id="form-message" role="status" aria-live="polite"></p>
+        </form>
+
+        <section class="panel results-panel" id="results" data-ready="false" aria-labelledby="result-title" aria-live="polite">
+          <div class="result-status"><span class="status-label" id="result-state">WAITING FOR FIVE RESULTS</span><span class="status-dot" aria-hidden="true"></span></div>
+          <div class="results-content">
+            <h2 class="result-heading" id="result-title">The next round is<br><span>not predictable.</span></h2>
+            <div class="numbers">
+              <div class="stat"><span class="stat-value" id="below-count">—</span><span class="stat-label">below 2×</span></div>
+              <div class="stat"><span class="stat-value" id="above-count">—</span><span class="stat-label">at least 2×</span></div>
+              <div class="stat"><span class="stat-value" id="median-value">—</span><span class="stat-label">median of five</span></div>
+              <div class="stat"><span class="stat-value" id="highest-value">—</span><span class="stat-label">highest of five</span></div>
+            </div>
+            <div class="history-readout"><span>Current low-result streak <small>(below 2×, in entered history)</small></span><strong id="streak-value">—</strong></div>
+            <div class="forecast-title">
+              <h3 id="next-round-heading">Next round</h3>
+              <span class="not-forecast">NOT A FORECAST</span>
+            </div>
+             <div class="round-row"><span>Round 01</span><strong>NO BET · NOT PREDICTABLE</strong></div>
+             <div class="round-row"><span>Round 02</span><strong>NO BET · NOT PREDICTABLE</strong></div>
+             <div class="round-row"><span>Round 03</span><strong>NO BET · NOT PREDICTABLE</strong></div>
+            <p class="result-disclaimer">These are descriptions of the five past results only. No next-round multiplier is generated.</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="how-section" aria-labelledby="limits-title">
+        <div>
+          <div class="section-kicker">02 / READ THE LIMITS</div>
+          <h2 id="limits-title">A pattern in a short history is still just history.</h2>
+          <p>Counts, median, maximum, and the current streak summarize only the five values entered. They do not measure a dependable trend and <strong>do not predict the next round</strong>.</p>
+          <p>Waiting 4–5 minutes after a 10× result has no demonstrated predictive basis. A past high multiplier does not reveal when another will occur.</p>
+        </div>
+        <aside class="caution-box">
+          <h3>About the two-bet example</h3>
+          <p>It is not risk-free. A crash before 1.5× can lose both stakes. A 1.5× cashout on R20 returns R30—merely matching the combined R10 + R20 stakes before the small bet’s result. That does not remove the risk of losing either stake.</p>
+        </aside>
+      </section>
+
+      <section class="reading" aria-labelledby="sources-title">
+        <h2 id="sources-title">Further reading</h2>
+        <div class="reading-list">
+          <p><a href="https://spribe.co/games/aviator?lang=en" target="_blank" rel="noopener noreferrer">SPRIBE: Aviator game description</a><span>Product description from the game provider.</span></p>
+          <p><a href="https://www.spribe.co/provably-fair" target="_blank" rel="noopener noreferrer">SPRIBE: Provably Fair</a><span>Explains how completed rounds can be verified using seeds and a commitment. This does not make future rounds derivable from past results.</span></p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div><strong>Gambling involves risk.</strong> You can lose money. This tool provides no betting advice, outcome guarantee, or forecast.</div>
+      <span class="footer-mark">REVIEW, DON’T RELY.</span>
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const form = document.getElementById("history-form");
+      const fields = Array.from({ length: 5 }, (_, i) => document.getElementById(`round-${i + 1}`));
+      const results = document.getElementById("results");
+      const stateLabel = document.getElementById("result-state");
+      const formMessage = document.getElementById("form-message");
+
+      function parseValue(raw) {
+        const value = raw.trim().replace(/[xX]\s*$/, "").trim();
+        if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)) return null;
+        const number = Number(value);
+        return Number.isFinite(number) && number > 0 ? number : null;
+      }
+      function shown(n) {
+        return `${Number(n.toFixed(2)).toFixed(2)}×`;
+      }
+      function updateSummary(values) {
+        const below = values.filter(value => value < 2);
+        const atLeast = values.length - below.length;
+        const ordered = [...values].sort((a, b) => a - b);
+        let streak = 0;
+        for (let i = values.length - 1; i >= 0 && values[i] < 2; i--) streak++;
+        document.getElementById("below-count").textContent = String(below.length);
+        document.getElementById("above-count").textContent = String(atLeast);
+        document.getElementById("median-value").textContent = shown(ordered[2]);
+        document.getElementById("highest-value").textContent = shown(Math.max(...values));
+        document.getElementById("streak-value").textContent = `${streak} ${streak === 1 ? "round" : "rounds"}`;
+        results.dataset.ready = "true";
+        stateLabel.textContent = "FIVE RESULTS REVIEWED";
+      }
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        const values = [];
+        let firstInvalid = null;
+        fields.forEach((input, index) => {
+          const parsed = parseValue(input.value);
+          const error = document.getElementById(`error-${index + 1}`);
+          if (parsed === null) {
+            input.setAttribute("aria-invalid", "true");
+            error.textContent = input.value.trim() ? "Use a number above zero, like 1.42x." : "Enter this multiplier.";
+            firstInvalid ||= input;
+          } else {
+            input.removeAttribute("aria-invalid");
+            error.textContent = "";
+            values.push(parsed);
+          }
+        });
+        if (firstInvalid) {
+          formMessage.textContent = "Please check the highlighted multipliers. All five are required.";
+          firstInvalid.focus();
+          return;
+        }
+        updateSummary(values);
+        formMessage.textContent = "History summary updated. No next-round forecast was generated.";
+      });
+      fields.forEach((input, index) => {
+        input.addEventListener("input", () => {
+          if (input.getAttribute("aria-invalid") === "true" && parseValue(input.value) !== null) {
+            input.removeAttribute("aria-invalid");
+            document.getElementById(`error-${index + 1}`).textContent = "";
+          }
+        });
+      });
+      form.addEventListener("reset", () => {
+        window.setTimeout(() => {
+          fields.forEach((input, index) => {
+            input.removeAttribute("aria-invalid");
+            document.getElementById(`error-${index + 1}`).textContent = "";
+          });
+          results.dataset.ready = "false";
+          stateLabel.textContent = "WAITING FOR FIVE RESULTS";
+          document.getElementById("below-count").textContent = "—";
+          document.getElementById("above-count").textContent = "—";
+          document.getElementById("median-value").textContent = "—";
+          document.getElementById("highest-value").textContent = "—";
+          document.getElementById("streak-value").textContent = "—";
+          formMessage.textContent = "All entries cleared.";
+        }, 0);
+      });
+    })();
+  </script>
 </body>
 </html>
